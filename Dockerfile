@@ -11,7 +11,7 @@ FROM gcr.io/distroless/static-debian11 as release
 
 WORKDIR /app
 COPY --from=build  /go/src/tasky/tasky .
-COPY --from=build  /go/src/tasky/app/views ./app/views
+COPY --from=build  /go/src/tasky/assets ./assets
 
 ENTRYPOINT ["/app/tasky"]
 
