@@ -9,11 +9,14 @@ import (
 
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	"github.com/joho/godotenv"
 )
 
 var Client *mongo.Client = CreateMongoClient()
 
 func CreateMongoClient() *mongo.Client {
+	godotenv.Overload()
+
 	MongoDbURI := os.Getenv("MONGODB_URI")
 	client, err := mongo.NewClient(options.Client().ApplyURI(MongoDbURI))
 	if err != nil {
