@@ -13,6 +13,7 @@ func SetupRoutes(app *fiber.App) {
 	app.Post("/login", auth.Login)
 	app.Get("/register", auth.Register)
 	app.Post("/signup", auth.Signup)
+	app.Get("/", auth.Auth)
 
 	//app.Static("/docs", "./docs")
 
