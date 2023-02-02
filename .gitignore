@@ -14,3 +14,11 @@
 
 # Dependency directories (remove the comment below to include it)
 vendor/
+
+
+.idea
+setup_test.sh
+Makefile
+deploy
+test
+tmp
