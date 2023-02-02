@@ -1,22 +1,36 @@
 package main
 
 import (
-	"fmt"
-	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/template/html"
-	"github.com/jeffthorne/tasky/app/database"
-	"github.com/jeffthorne/tasky/app/routes"
+	"net/http"
+	controller "github.com/jeffthorne/tasky/controllers"
+	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
 )
 
-func main() {
-	engine := html.New("./app/views", ".html")
-	app := fiber.New(fiber.Config{
-		Views: engine,
-	})
-	routes.SetupRoutes(app)
-	database.InitMongo()
+func index(c *gin.Context) {
+	c.HTML(http.StatusOK, "login.html", nil)
+}
 
-	if err := app.Listen(":3000"); err != nil {
-		fmt.Println("ERROR: ", err)
-	}
+func main() {
+	godotenv.Overload()
+	
+	router := gin.Default()
+	router.LoadHTMLGlob("assets/*.html")
+	router.Static("/assets", "./assets")
+
+	router.GET("/", index)
+	router.GET("/todos/:userid", controller.GetTodos)
+	router.GET("/todo/:id", controller.GetTodo)
+	router.POST("/todo/:userid", controller.AddTodo)
+	router.DELETE("/todo/:userid/:id", controller.DeleteTodo)
+	router.DELETE("/todos/:userid", controller.ClearAll)
+	router.PUT("/todo", controller.UpdateTodo)
+
+
+	router.POST("/signup", controller.SignUp)
+	router.POST("/login", controller.Login)
+	router.GET("/todo", controller.Todo)
+
+	router.Run(":8080" )
+
 }

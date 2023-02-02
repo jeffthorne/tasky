@@ -1,14 +1,16 @@
-.idea/
-schema.hcl
-test.db
-test.sql
-tmp/
-go-air/
-go.sum
-.air.conf
-.env-dev
-setup.sh
-setup_test.sh
-Makefile
-test/
-deploy/
+# Binaries for programs and plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.env
+
+# Test binary, built with `go test -c`
+*.test
+
+# Output of the go coverage tool, specifically when used with LiteIDE
+*.out
+
+# Dependency directories (remove the comment below to include it)
+vendor/
