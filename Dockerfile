@@ -7,7 +7,7 @@ RUN go mod download
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o /go/src/tasky/tasky
 
 
-FROM gcr.io/distroless/static-debian11 as release
+FROM alpine:3.17.0 as release
 
 WORKDIR /app
 COPY --from=build  /go/src/tasky/tasky .

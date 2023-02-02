@@ -7,16 +7,15 @@ import (
 	"os"
 	"time"
 
+	"github.com/joho/godotenv"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"github.com/joho/godotenv"
 )
 
 var Client *mongo.Client = CreateMongoClient()
 
 func CreateMongoClient() *mongo.Client {
 	godotenv.Overload()
-
 	MongoDbURI := os.Getenv("MONGODB_URI")
 	client, err := mongo.NewClient(options.Client().ApplyURI(MongoDbURI))
 	if err != nil {
@@ -29,7 +28,7 @@ func CreateMongoClient() *mongo.Client {
 		log.Fatal(err)
 	}
 	defer cancel()
-	fmt.Println("Connected to MONGO!")
+	fmt.Println("Connected to MONGO -> ", MongoDbURI)
 	return client
 }
 
