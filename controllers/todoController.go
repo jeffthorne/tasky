@@ -18,6 +18,11 @@ import (
 var todoCollection *mongo.Collection = database.OpenCollection(database.Client, "todos")
 
 func GetTodo(c *gin.Context) {
+	session := auth.ValidateSession(c)
+	if !session{
+		return
+	}
+
 	var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
 
 	id := c.Param("id")
