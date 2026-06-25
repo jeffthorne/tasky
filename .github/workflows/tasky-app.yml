@@ -1,0 +1,65 @@
+name: Tasky App Build, Scan and Push
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
+  GAR_LOCATION: ${{ vars.GCP_REGION }}
+  REPOSITORY: wiz-repo
+  IMAGE: tasky
+
+jobs:
+  build-scan-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: 'read'
+      id-token: 'write' # Required for Workload Identity Federation
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        id: auth
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: "projects/${{ env.PROJECT_ID }}/locations/global/workloadIdentityPools/github/providers/my-repo"
+          service_account: "github-actions-sa@${{ env.PROJECT_ID }}.iam.gserviceaccount.com"
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Configure Docker to use GAR
+        run: gcloud auth configure-docker ${{ env.GAR_LOCATION }}-docker.pkg.dev
+
+      - name: Build Docker Image
+        run: |
+          # Get last commit email
+          COMMIT_EMAIL=$(git log -1 --pretty=format:'%ae')
+          # Create a version string with the username
+          DYNAMIC_CONTENT="${COMMIT_EMAIL}@${{ github.sha }}"
+          docker build \
+            --build-arg exposed_username="${DYNAMIC_CONTENT}" \
+            --tag ${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.IMAGE }}:${{ github.sha }} .
+
+      - name: Build Docker Image
+        run: |
+          docker build -t ${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.IMAGE }}:${{ github.sha }} .
+
+      # Wiz Requirement: Scan Container Image prior to deployment
+      - name: Scan Image with Trivy
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: '${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.IMAGE }}:${{ github.sha }}'
+          format: 'table'
+          exit-code: '0' # Set to 1 in a real prod environment to block pipelines on high/critical CVEs
+          ignore-unfixed: true
+          vuln-type: 'os,library'
+          severity: 'CRITICAL,HIGH'
+
+      - name: Push Docker Image to GAR
+        run: |
+          docker push ${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.IMAGE }}:${{ github.sha }}
